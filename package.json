@@ -1,17 +1,15 @@
 {
   "name": "robotjs",
-  "version": "0.4.7",
+  "version": "0.5.1",
   "description": "Node.js Desktop Automation.",
   "main": "index.js",
   "typings": "index.d.ts",
   "scripts": {
-    "test": "node test/all.js",
-    "test-mix": "node test/mix.js",
-    "test-mouse": "node test/mouse.js",
-    "test-screen": "node test/screen.js",
-    "test-keyboard": "node test/keyboard.js",
+    "test": "run-script-os",
+    "test:darwin:linux": "jasmine 'test/**/*.js'",
+    "test:win32": "jasmine test/**/*.js",
     "install": "prebuild-install || node-gyp rebuild",
-    "install-debug": "prebuild-install || node-gyp rebuild --debug"
+    "prebuild": "prebuild --all"
   },
   "repository": {
     "type": "git",
@@ -47,6 +45,9 @@
   },
   "devDependencies": {
     "tape": "^4.8.0",
-    "prebuild": "v7.0.0"
+    "jasmine": "^2.99.0",
+    "prebuild": "^7.4.0",
+    "run-script-os": "^1.0.3",
+    "targetpractice": "0.0.7"
   }
 }

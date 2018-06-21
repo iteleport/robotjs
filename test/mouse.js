@@ -1,63 +1,36 @@
-var test = require('tape');
 var robot = require('..');
 var lastKnownPos, currentPos;
 
-//Increase delay to help test reliability.
+//Increase delay to help it reliability.
 robot.setMouseDelay(100);
 
-test('Get the initial mouse position.', function(t) 
-{
-	t.plan(3);
-	t.ok(lastKnownPos = robot.getMousePos(), 'successfully retrieved mouse position.');
-	t.ok(lastKnownPos.x !== undefined, 'mousepos.x is a valid value.');
-	t.ok(lastKnownPos.y !== undefined, 'mousepos.y is a valid value.');
-});
+describe('Mouse', () => {
+  it('Get the initial mouse position.', function()
+  {
+    expect(lastKnownPos = robot.getMousePos()).toBeTruthy();
+    expect(lastKnownPos.x !== undefined).toBeTruthy();
+    expect(lastKnownPos.y !== undefined).toBeTruthy();
+  });
 
-test('Move the mouse.', function(t) 
-{
-	t.plan(6);
-	lastKnownPos = robot.moveMouse(0, 0);
-	t.ok(robot.moveMouse(100, 100) === 1, 'successfully moved the mouse.');
-	currentPos = robot.getMousePos();
-	t.ok(currentPos.x === 100, 'mousepos.x is correct.');
-	t.ok(currentPos.y === 100, 'mousepos.y is correct.');
-	
-	t.throws(function()
-	{
-		robot.moveMouse(0, 1, 2, 3);
-	}, /Invalid number/, 'move mouse to (0, 1, 2, 3).');
-	
-	t.throws(function()
-	{
-		robot.moveMouse(0);
-	}, /Invalid number/, 'move mouse to (0).');
-	
-	t.ok(robot.moveMouse("0", "0") === 1, 'move mouse to ("0", "0").');
+  it('Move the mouse.', function()
+  {
+    lastKnownPos = robot.moveMouse(0, 0);
+    expect(robot.moveMouse(100, 100) === 1).toBeTruthy();
+    currentPos = robot.getMousePos();
+    expect(currentPos.x === 100).toBeTruthy();
+    expect(currentPos.y === 100).toBeTruthy();
 
-});
+    expect(function()
+    {
+      robot.moveMouse(0, 1, 2, 3);
+    }).toThrowError(/Invalid number/);
 
-test('Move the mouse smoothly.', function(t) 
-{
-	t.plan(6);
-	lastKnownPos = robot.moveMouseSmooth(0, 0);
-	t.ok(robot.moveMouseSmooth(100, 100) === 1, 'successfully moved the mouse.');
-	currentPos = robot.getMousePos();
-	t.ok(currentPos.x === 100, 'mousepos.x is correct.');
-	t.ok(currentPos.y === 100, 'mousepos.y is correct.');
-	
-	t.throws(function()
-	{
-		robot.moveMouseSmooth(0, 1, 2, 3);
-	}, /Invalid number/, 'move mouse to (0, 1, 2, 3).');
-	
-	t.throws(function()
-	{
-		robot.moveMouseSmooth(0);
-	}, /Invalid number/, 'move mouse to (0).');
-	
-	t.ok(robot.moveMouseSmooth("0", "0") === 1, 'move mouse to ("0", "0").');
+    expect(function()
+    {
+      robot.moveMouse(0);
+    }).toThrowError(/Invalid number/);
 
-});
+    expect(robot.moveMouse("0", "0") === 1).toBeTruthy();
 
 test('Click the mouse.', function(t) 
 {
@@ -120,5 +93,61 @@ test('Drag the mouse.', function(t)
 
 });
 
-//TODO: Need tests for mouseToggle, and scrollMouse. 
+    expect(function()
+    {
+      robot.mouseClick("party");
+    }).toThrowError(/Invalid mouse/);
 
+    expect(function()
+    {
+      robot.mouseClick("0");
+    }).toThrowError(/Invalid mouse/);
+
+    expect(function()
+    {
+      robot.mouseClick("left", 0, "it");
+    }).toThrowError(/Invalid number/);
+
+  });
+
+  it('Drag the mouse.', function()
+  {
+
+    expect(robot.dragMouse(5, 5) === 1).toBeTruthy();
+
+    expect(function()
+    {
+      robot.dragMouse(0);
+    }).toThrowError(/Invalid number/);
+
+    expect(function()
+    {
+      robot.dragMouse(1, 1, "left", 5);
+    }).toThrowError(/Invalid number/);
+
+    expect(function()
+    {
+      robot.dragMouse(2, 2, "party");
+    }).toThrowError(/Invalid mouse/);
+
+  });
+
+  it('Mouse scroll.', function()
+  {
+    expect(lastKnownPos = robot.getMousePos()).toBeTruthy();
+    expect(robot.mouseClick() === 1).toBeTruthy();
+    expect(robot.scrollMouse(0, 1 * 120) === 1).toBeTruthy();
+    expect(robot.scrollMouse(0, 20 * 120) === 1).toBeTruthy();
+    expect(robot.scrollMouse(0, -5 * 120) === 1).toBeTruthy();
+    expect(robot.scrollMouse(1 * 120, 0) === 1).toBeTruthy();
+    expect(robot.scrollMouse(20 * 120, 0) === 1).toBeTruthy();
+    expect(robot.scrollMouse(-5 * 120, 0) === 1).toBeTruthy();
+    expect(robot.scrollMouse(-5 * 120, -5 * 120) === 1).toBeTruthy();
+  });
+
+  it('Mouse Toggle', function()
+  {
+    expect(lastKnownPos = robot.getMousePos()).toBeTruthy();
+    expect(robot.mouseToggle('up', 'right') === 1).toBeTruthy();
+  });
+});
