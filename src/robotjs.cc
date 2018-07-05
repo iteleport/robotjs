@@ -333,8 +333,8 @@ NAN_METHOD(moveMouseSmooth)
 	size_t x = info[0]->Int32Value();
 	size_t y = info[1]->Int32Value();
 
-	MMPoint point;
-	point = MMPointMake(x, y);
+	MMSignedPoint point;
+	point = MMSignedPointMake(x, y);
 	smoothlyMoveMouse(point);
 	microsleep(mouseDelay);
 
@@ -343,12 +343,12 @@ NAN_METHOD(moveMouseSmooth)
 
 NAN_METHOD(getMousePos)
 {
-	MMPoint pos = getMousePos();
+	MMSignedPoint pos = getMousePos();
 
 	//Return object with .x and .y.
 	Local<Object> obj = Nan::New<Object>();
-	Nan::Set(obj, Nan::New("x").ToLocalChecked(), Nan::New((int)pos.x));
-	Nan::Set(obj, Nan::New("y").ToLocalChecked(), Nan::New((int)pos.y));
+	Nan::Set(obj, Nan::New("x").ToLocalChecked(), Nan::New((int32_t)pos.x));
+	Nan::Set(obj, Nan::New("y").ToLocalChecked(), Nan::New((int32_t)pos.y));
 	info.GetReturnValue().Set(obj);
 }
 

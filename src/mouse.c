@@ -138,7 +138,7 @@ void dragMouse(MMSignedPoint point, const MMMouseButton button)
 #endif
 }
 
-MMPoint getMousePos()
+MMSignedPoint getMousePos()
 {
 #if defined(IS_MACOSX)
 	CGEventRef event = CGEventCreate(NULL);
@@ -156,12 +156,12 @@ MMPoint getMousePos()
 	XQueryPointer(display, XDefaultRootWindow(display), &garb1, &garb2,
 	              &x, &y, &garb_x, &garb_y, &more_garbage);
 
-	return MMPointMake(x, y);
+	return MMSignedPointMake(x, y);
 #elif defined(IS_WINDOWS)
 	POINT point;
 	GetCursorPos(&point);
 
-	return MMPointFromPOINT(point);
+	return MMSignedPointFromPOINT(point);
 #endif
 }
 
@@ -173,7 +173,8 @@ MMPoint getMousePos()
 void toggleMouse(bool down, MMMouseButton button)
 {
 #if defined(IS_MACOSX)
-	const CGPoint currentPos = CGPointFromMMPoint(getMousePos());
+
+	const CGPoint currentPos = CGPointFromMMSignedPoint(getMousePos());
 	const CGEventType mouseType = MMMouseToCGEventType(down, button);
 	CGEventRef event = CGEventCreateMouseEvent(NULL,
 	                                           mouseType,
@@ -206,7 +207,10 @@ void doubleClick(MMMouseButton button)
 #if defined(IS_MACOSX)
 
 	/* Double click for Mac. */
-	const CGPoint currentPos = CGPointFromMMPoint(getMousePos());
+	CGEventRef posEvent = CGEventCreate(NULL);
+	CGPoint currentPos = CGEventGetLocation(posEvent);
+	CFRelease(posEvent);
+
 	const CGEventType mouseTypeDown = MMMouseToCGEventType(true, button);
 	const CGEventType mouseTypeUP = MMMouseToCGEventType(false, button);
 
@@ -340,9 +344,9 @@ static double crude_hypot(double x, double y)
 	return ((M_SQRT2 - 1.0) * small) + big;
 }
 
-bool smoothlyMoveMouse(MMPoint endPoint)
+bool smoothlyMoveMouse(MMSignedPoint endPoint)
 {
-	MMPoint pos = getMousePos();
+	MMSignedPoint pos = getMousePos();
 	MMSize screenSize = getMainDisplaySize();
 	double velo_x = 0.0, velo_y = 0.0;
 	double distance;
