@@ -13,6 +13,9 @@
 #if defined(USE_X11)
 	#include "xdisplay.h"
 #endif
+#if defined(IS_MACOSX)
+	#include <ApplicationServices/ApplicationServices.h>
+#endif
 
 using namespace v8;
 
@@ -868,6 +871,27 @@ NAN_METHOD(getColor)
 
 }
 
+NAN_METHOD(requestControlAccessibility)
+{
+	#if defined(IS_MACOSX)
+	const void * keys[] = { kAXTrustedCheckOptionPrompt };
+    const void * values[] = { kCFBooleanTrue };
+
+    CFDictionaryRef options = CFDictionaryCreate(
+            kCFAllocatorDefault,
+            keys,
+            values,
+            sizeof(keys) / sizeof(*keys),
+            &kCFCopyStringDictionaryKeyCallBacks,
+            &kCFTypeDictionaryValueCallBacks);
+
+	AXIsProcessTrustedWithOptions(options);
+	info.GetReturnValue().Set(Nan::New(1));
+	#else
+	Nan::ThrowError("requestControlAccessibility is only supported on Mac");
+	#endif
+}
+
 NAN_MODULE_INIT(InitAll)
 {
 	Nan::Set(target, Nan::New("dragMouse").ToLocalChecked(),
@@ -926,6 +950,9 @@ NAN_MODULE_INIT(InitAll)
 
 	Nan::Set(target, Nan::New("setXDisplayName").ToLocalChecked(),
 		Nan::GetFunction(Nan::New<FunctionTemplate>(setXDisplayName)).ToLocalChecked());
+
+	Nan::Set(target, Nan::New("requestControlAccessibility").ToLocalChecked(),
+		Nan::GetFunction(Nan::New<FunctionTemplate>(requestControlAccessibility)).ToLocalChecked());
 }
 
 NODE_MODULE(robotjs, InitAll)
