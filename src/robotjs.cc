@@ -897,7 +897,7 @@ NAN_METHOD(getIsInputDesktop)
 	#if defined(IS_WINDOWS)
 
 	HDESK hdeskInput = OpenInputDesktop(0, FALSE, 0); // does not set GetLastError(), so GetLastError() is arbitrary if NULL is returned
-	if (hdeskInput == NULL) return true;
+	if (hdeskInput == NULL) info.GetReturnValue().Set(false);
 
 	DWORD nLengthNeeded;
 	TCHAR szInputDesktop[16];
@@ -910,10 +910,10 @@ NAN_METHOD(getIsInputDesktop)
 	TCHAR szThreadDesktop[16];
 	(GetUserObjectInformation(hdeskThread, UOI_NAME, &szThreadDesktop, sizeof(szThreadDesktop), &nLengthNeeded) && nLengthNeeded <= sizeof(szThreadDesktop));
 	BOOL isOnCorrectThread = _tcsicmp(szThreadDesktop, szInputDesktop) == 0;
-	return isOnCorrectThread;
+	info.GetReturnValue().Set(isOnCorrectThread);
 
 	#else
-	return true;
+	info.GetReturnValue().Set(true);
 	#endif
 }
 
