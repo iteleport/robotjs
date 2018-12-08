@@ -892,6 +892,31 @@ NAN_METHOD(requestControlAccessibility)
 	#endif
 }
 
+NAN_METHOD(getIsInputDesktop)
+{
+	#if defined(IS_WINDOWS)
+
+	HDESK hdeskInput = OpenInputDesktop(0, FALSE, 0); // does not set GetLastError(), so GetLastError() is arbitrary if NULL is returned
+	if (hdeskInput == NULL) return true;
+
+	DWORD nLengthNeeded;
+	TCHAR szInputDesktop[16];
+	(GetUserObjectInformation(hdeskInput, UOI_NAME, &szInputDesktop, sizeof(szInputDesktop), &nLengthNeeded) && nLengthNeeded <= sizeof(szInputDesktop));
+
+	CloseDesktop(hdeskInput);
+
+	HDESK hdeskThread = GetThreadDesktop(GetCurrentThreadId()); // MSDN says no need to close this handle
+
+	TCHAR szThreadDesktop[16];
+	(GetUserObjectInformation(hdeskThread, UOI_NAME, &szThreadDesktop, sizeof(szThreadDesktop), &nLengthNeeded) && nLengthNeeded <= sizeof(szThreadDesktop));
+	BOOL isOnCorrectThread = _tcsicmp(szThreadDesktop, szInputDesktop) == 0;
+	return isOnCorrectThread;
+
+	#else
+	return true;
+	#endif
+}
+
 NAN_MODULE_INIT(InitAll)
 {
 	Nan::Set(target, Nan::New("dragMouse").ToLocalChecked(),
@@ -953,6 +978,9 @@ NAN_MODULE_INIT(InitAll)
 
 	Nan::Set(target, Nan::New("requestControlAccessibility").ToLocalChecked(),
 		Nan::GetFunction(Nan::New<FunctionTemplate>(requestControlAccessibility)).ToLocalChecked());
+
+	Nan::Set(target, Nan::New("getIsInputDesktop").ToLocalChecked(),
+		Nan::GetFunction(Nan::New<FunctionTemplate>(getIsInputDesktop)).ToLocalChecked());
 }
 
 NODE_MODULE(robotjs, InitAll)
