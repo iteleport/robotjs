@@ -909,7 +909,7 @@ NAN_METHOD(getIsInputDesktop)
 
 	TCHAR szThreadDesktop[16];
 	(GetUserObjectInformation(hdeskThread, UOI_NAME, &szThreadDesktop, sizeof(szThreadDesktop), &nLengthNeeded) && nLengthNeeded <= sizeof(szThreadDesktop));
-	BOOL isOnCorrectThread = _tcsicmp(szThreadDesktop, szInputDesktop) == 0;
+	BOOL isOnCorrectThread = strcmp(szThreadDesktop, szInputDesktop) == 0;
 	info.GetReturnValue().Set(isOnCorrectThread);
 
 	#else
