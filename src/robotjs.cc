@@ -359,7 +359,7 @@ NAN_METHOD(mouseClick)
 {
 	MMMouseButton button = LEFT_BUTTON;
 	MMKeyFlags flags = MOD_NONE;
-	bool doubleC = false;
+	int clickCount = false;
 
 	if (info.Length() < 0 || info.Length() > 3)
 	{
@@ -381,7 +381,7 @@ NAN_METHOD(mouseClick)
 
 		if (info.Length() > 1) {
 			// Determine single or double click.
-			doubleC = info[1]->BooleanValue();
+			clickCount = info[1]->Int32Value();
 		}
 
 		if (info.Length() > 2) {
@@ -400,14 +400,7 @@ NAN_METHOD(mouseClick)
 		toggleKeyFlags(flags, true);
 	}
 
-	if (!doubleC)
-	{
-		clickMouse(button);
-	}
-	else
-	{
-		doubleClick(button);
-	}
+	clickMouse(button, clickCount);
 
 	if (!(flags & MOD_NONE)) {
 		toggleKeyFlags(flags, false);

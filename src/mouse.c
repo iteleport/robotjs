@@ -191,19 +191,8 @@ void toggleMouse(bool down, MMMouseButton button)
 #endif
 }
 
-void clickMouse(MMMouseButton button)
+void clickMouse(MMMouseButton button, int clickCount)
 {
-	toggleMouse(true, button);
-	toggleMouse(false, button);
-}
-
-/**
- * Special function for sending double clicks, needed for Mac OS X.
- * @param button Button to click.
- */
-void doubleClick(MMMouseButton button)
-{
-
 #if defined(IS_MACOSX)
 
 	/* Double click for Mac. */
@@ -214,7 +203,7 @@ void doubleClick(MMMouseButton button)
 	CGEventRef event = CGEventCreateMouseEvent(NULL, mouseTypeDown, currentPos, kCGMouseButtonLeft);
 
 	/* Set event to double click. */
-	CGEventSetIntegerValueField(event, kCGMouseEventClickState, 2);
+	CGEventSetIntegerValueField(event, kCGMouseEventClickState, clickCount);
 
 	CGEventPost(kCGHIDEventTap, event);
 
@@ -222,14 +211,13 @@ void doubleClick(MMMouseButton button)
 	CGEventPost(kCGHIDEventTap, event);
 
 	CFRelease(event);
-
 #else
-
 	/* Double click for everything else. */
-	clickMouse(button);
-	microsleep(200);
-	clickMouse(button);
-
+	while (clickCount--) {
+		toggleMouse(true, button);
+		toggleMouse(false, button);
+		if (clickCount) microsleep(200);
+	}
 #endif
 }
 
