@@ -82,7 +82,7 @@ MMSignedPoint getMousePos(void);
 
 /* Holds down or releases the mouse with the given button in the current
  * position. */
-void toggleMouse(bool down, MMMouseButton button);
+void toggleMouse(bool down, MMMouseButton button, int clickCount);
 
 /* Clicks the mouse with the given button in the current position. */
 void clickMouse(MMMouseButton button, int clickCount);

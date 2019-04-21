@@ -437,7 +437,7 @@ NAN_METHOD(mouseToggle)
 		}
 	}
 
-	if (info.Length() == 2)
+	if (info.Length() == 3)
 	{
 		Nan::Utf8String bstr(info[1]);
 		const char * const b = *bstr;
@@ -452,12 +452,13 @@ NAN_METHOD(mouseToggle)
 				break;
 		}
 	}
-	else if (info.Length() > 2)
+	else if (info.Length() > 3)
 	{
 		return Nan::ThrowError("Invalid number of arguments.");
 	}
 
-	toggleMouse(down, button);
+	int clickCount = info[2]->Int32Value();
+	toggleMouse(down, button, clickCount);
 	microsleep(mouseDelay);
 
 	info.GetReturnValue().Set(Nan::New(1));
