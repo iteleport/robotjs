@@ -459,7 +459,7 @@ NAN_METHOD(mouseToggle)
 
 	int clickCount = info[2]->Int32Value();
 	MMKeyFlags flags = MOD_NONE;
-	switch (GetFlagsFromValue(info[2], &flags))
+	switch (GetFlagsFromValue(info[3], &flags))
 	{
 		case -1:
 			return Nan::ThrowError("Null pointer in key flag.");
