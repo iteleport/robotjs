@@ -217,8 +217,8 @@ void clickMouse(MMMouseButton button, int clickCount, MMKeyFlags flags)
 #else
 	/* Double click for everything else. */
 	while (clickCount--) {
-		toggleMouse(true, button, 1);
-		toggleMouse(false, button, 1);
+		toggleMouse(true, button, 1, 0);
+		toggleMouse(false, button, 1, 0);
 		if (clickCount) microsleep(200);
 	}
 #endif
