@@ -170,7 +170,7 @@ MMSignedPoint getMousePos()
  * @param down   True for down, false for up.
  * @param button The button to press down or release.
  */
-void toggleMouse(bool down, MMMouseButton button, int clickCount)
+void toggleMouse(bool down, MMMouseButton button, int clickCount, MMKeyFlags flags)
 {
 #if defined(IS_MACOSX)
 
@@ -181,6 +181,7 @@ void toggleMouse(bool down, MMMouseButton button, int clickCount)
 	                                           currentPos,
 	                                           (CGMouseButton)button);
 	CGEventSetIntegerValueField(event, kCGMouseEventClickState, clickCount);
+	CGEventSetFlags(event, flags);
 	CGEventPost(kCGSessionEventTap, event);
 	CFRelease(event);
 #elif defined(USE_X11)
@@ -192,7 +193,7 @@ void toggleMouse(bool down, MMMouseButton button, int clickCount)
 #endif
 }
 
-void clickMouse(MMMouseButton button, int clickCount)
+void clickMouse(MMMouseButton button, int clickCount, MMKeyFlags flags)
 {
 #if defined(IS_MACOSX)
 
@@ -205,6 +206,7 @@ void clickMouse(MMMouseButton button, int clickCount)
 
 	/* Set event to double click. */
 	CGEventSetIntegerValueField(event, kCGMouseEventClickState, clickCount);
+	CGEventSetFlags(event, flags);
 
 	CGEventPost(kCGHIDEventTap, event);
 

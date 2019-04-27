@@ -359,7 +359,7 @@ NAN_METHOD(mouseClick)
 {
 	MMMouseButton button = LEFT_BUTTON;
 	MMKeyFlags flags = MOD_NONE;
-	int clickCount = false;
+	int clickCount = 1;
 
 	if (info.Length() < 0 || info.Length() > 3)
 	{
@@ -400,7 +400,7 @@ NAN_METHOD(mouseClick)
 		toggleKeyFlags(flags, true);
 	}
 
-	clickMouse(button, clickCount);
+	clickMouse(button, clickCount, flags);
 
 	if (!(flags & MOD_NONE)) {
 		toggleKeyFlags(flags, false);
@@ -437,7 +437,7 @@ NAN_METHOD(mouseToggle)
 		}
 	}
 
-	if (info.Length() == 3)
+	if (info.Length() == 4)
 	{
 		Nan::Utf8String bstr(info[1]);
 		const char * const b = *bstr;
@@ -452,13 +452,22 @@ NAN_METHOD(mouseToggle)
 				break;
 		}
 	}
-	else if (info.Length() > 3)
+	else if (info.Length() > 4)
 	{
 		return Nan::ThrowError("Invalid number of arguments.");
 	}
 
 	int clickCount = info[2]->Int32Value();
-	toggleMouse(down, button, clickCount);
+	MMKeyFlags flags = MOD_NONE;
+	switch (GetFlagsFromValue(info[2], &flags))
+	{
+		case -1:
+			return Nan::ThrowError("Null pointer in key flag.");
+		case -2:
+			return Nan::ThrowError("Invalid key flag specified.");
+	}
+
+	toggleMouse(down, button, clickCount, flags);
 	microsleep(mouseDelay);
 
 	info.GetReturnValue().Set(Nan::New(1));
