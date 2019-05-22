@@ -32,38 +32,66 @@ describe('Mouse', () => {
 
     expect(robot.moveMouse("0", "0") === 1).toBeTruthy();
 
-  });
+test('Click the mouse.', function(t) 
+{
+	t.plan(11);
+	t.ok(robot.mouseClick(), 'click the mouse (no button specified).');
+	t.ok(robot.mouseClick("left") === 1, 'click the left mouse button.');
+	t.ok(robot.mouseClick("middle") === 1, 'click the middle mouse button.');
+	t.ok(robot.mouseClick("right") === 1, 'click the right mouse button.');
+	
+	t.ok(robot.mouseClick("left", 1), 'double click the left mouse button.');
+	
+	t.throws(function()
+	{
+		robot.mouseClick("party");
+	}, /Invalid mouse/, 'click an incorrect mouse button (party).');
+	
+	t.throws(function()
+	{
+		robot.mouseClick("0");
+	}, /Invalid mouse/, 'click an incorrect mouse button (0).');
 
-  it('Move the mouse smoothly.', function()
-  {
-    lastKnownPos = robot.moveMouseSmooth(0, 0);
-    expect(robot.moveMouseSmooth(100, 100) === 1).toBeTruthy();
-    currentPos = robot.getMousePos();
-    expect(currentPos.x).toEqual(100);
-    expect(currentPos.y).toEqual(100);
+	var modifiers = []
+	modifiers.push('shift')
+	modifiers.push('control')
+	t.ok(robot.mouseClick("left", 0, modifiers), 'Successfully clicked the left mouse button while Ctrl+Shift were pressed down.');
+	t.ok(robot.mouseClick("left", 0, modifiers), 'Successfully clicked the left mouse button while Ctrl+Shift were pressed down.');
 
-    expect(function()
-    {
-      robot.moveMouseSmooth(0, 1, 2, 3);
-    }).toThrowError(/Invalid number/);
+	t.throws(function()
+	{
+		robot.mouseClick("left", 0, "test");
+	}, /Invalid key flag specified./, 'click the mouse with wrong modifier argument.');
 
-    expect(function()
-    {
-      robot.moveMouseSmooth(0);
-    }).toThrowError(/Invalid number/);
+	t.throws(function()
+	{
+		robot.mouseClick("left", 0, modifiers, "test");
+	}, /Invalid number/, 'click the mouse with an extra argument.');
+	
+});
 
-    expect(robot.moveMouseSmooth("0", "0") === 1).toBeTruthy();
+test('Drag the mouse.', function(t) 
+{
+	t.plan(4);
+	
+	t.ok(robot.dragMouse(5, 5) === 1, 'successfully dragged the mouse.');
+	
+	t.throws(function()
+	{
+		robot.dragMouse(0);
+	}, /Invalid number/, 'drag mouse to (0).');
+	
+	t.throws(function()
+	{
+		robot.dragMouse(1, 1, "left", 5);
+	}, /Invalid number/, 'drag mouse with extra argument.');
+	
+	t.throws(function()
+	{
+		robot.dragMouse(2, 2, "party");
+	}, /Invalid mouse/, 'drag an incorrect mouse button (party).');
 
-  });
-
-  it('Click the mouse.', function()
-  {
-    expect(robot.mouseClick()).toBeTruthy();
-    expect(robot.mouseClick("left") === 1).toBeTruthy();
-    expect(robot.mouseClick("middle") === 1).toBeTruthy();
-    expect(robot.mouseClick("right") === 1).toBeTruthy();
-
-    expect(robot.mouseClick("left", 1)).toBeTruthy();
+});
 
     expect(function()
     {

@@ -12,9 +12,16 @@
       '-Wbad-function-cast',
       '-Wdisabled-optimization'
     ],
+
+    'cflags!': [ '-fno-exceptions' ],
+    'cflags_cc!': [ '-fno-exceptions' ],
     
     'conditions': [
       ['OS == "mac"', {
+        'xcode_settings': {
+          'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
+          'DEBUG_INFORMATION_FORMAT': 'dwarf-with-dsym'
+        },
         'include_dirs': [
           'System/Library/Frameworks/CoreFoundation.Framework/Headers',
           'System/Library/Frameworks/Carbon.Framework/Headers',

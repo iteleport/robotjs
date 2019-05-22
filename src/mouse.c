@@ -62,7 +62,7 @@
  * @param event The mouse move event (by ref).
  * @param point The new mouse x and y.
  */
-void calculateDeltas(CGEventRef *event, MMPoint point)
+void calculateDeltas(CGEventRef *event, MMSignedPoint point)
 {
 	/**
 	 * The next few lines are a workaround for games not detecting mouse moves.
@@ -88,11 +88,11 @@ void calculateDeltas(CGEventRef *event, MMPoint point)
  * Move the mouse to a specific point.
  * @param point The coordinates to move the mouse to (x, y).
  */
-void moveMouse(MMPoint point)
+void moveMouse(MMSignedPoint point)
 {
 #if defined(IS_MACOSX)
 	CGEventRef move = CGEventCreateMouseEvent(NULL, kCGEventMouseMoved,
-	                                          CGPointFromMMPoint(point),
+	                                          CGPointFromMMSignedPoint(point),
 	                                          kCGMouseButtonLeft);
 
 	calculateDeltas(&move, point);
@@ -122,12 +122,12 @@ void moveMouse(MMPoint point)
 #endif
 }
 
-void dragMouse(MMPoint point, const MMMouseButton button)
+void dragMouse(MMSignedPoint point, const MMMouseButton button)
 {
 #if defined(IS_MACOSX)
 	const CGEventType dragType = MMMouseDragToCGEventType(button);
 	CGEventRef drag = CGEventCreateMouseEvent(NULL, dragType,
-	                                                CGPointFromMMPoint(point),
+	                                                CGPointFromMMSignedPoint(point),
 	                                                (CGMouseButton)button);
 	calculateDeltas(&drag, point);
 
@@ -138,14 +138,14 @@ void dragMouse(MMPoint point, const MMMouseButton button)
 #endif
 }
 
-MMPoint getMousePos()
+MMSignedPoint getMousePos()
 {
 #if defined(IS_MACOSX)
 	CGEventRef event = CGEventCreate(NULL);
 	CGPoint point = CGEventGetLocation(event);
 	CFRelease(event);
 
-	return MMPointFromCGPoint(point);
+	return MMSignedPointFromCGPoint(point);
 #elif defined(USE_X11)
 	int x, y; /* This is all we care about. Seriously. */
 	Window garb1, garb2; /* Why you can't specify NULL as a parameter */
@@ -156,12 +156,12 @@ MMPoint getMousePos()
 	XQueryPointer(display, XDefaultRootWindow(display), &garb1, &garb2,
 	              &x, &y, &garb_x, &garb_y, &more_garbage);
 
-	return MMPointMake(x, y);
+	return MMSignedPointMake(x, y);
 #elif defined(IS_WINDOWS)
 	POINT point;
 	GetCursorPos(&point);
 
-	return MMPointFromPOINT(point);
+	return MMSignedPointFromPOINT(point);
 #endif
 }
 
@@ -170,15 +170,18 @@ MMPoint getMousePos()
  * @param down   True for down, false for up.
  * @param button The button to press down or release.
  */
-void toggleMouse(bool down, MMMouseButton button)
+void toggleMouse(bool down, MMMouseButton button, int clickCount, MMKeyFlags flags)
 {
 #if defined(IS_MACOSX)
-	const CGPoint currentPos = CGPointFromMMPoint(getMousePos());
+
+	const CGPoint currentPos = CGPointFromMMSignedPoint(getMousePos());
 	const CGEventType mouseType = MMMouseToCGEventType(down, button);
 	CGEventRef event = CGEventCreateMouseEvent(NULL,
 	                                           mouseType,
 	                                           currentPos,
 	                                           (CGMouseButton)button);
+	CGEventSetIntegerValueField(event, kCGMouseEventClickState, clickCount);
+	CGEventSetFlags(event, flags);
 	CGEventPost(kCGSessionEventTap, event);
 	CFRelease(event);
 #elif defined(USE_X11)
@@ -190,30 +193,20 @@ void toggleMouse(bool down, MMMouseButton button)
 #endif
 }
 
-void clickMouse(MMMouseButton button)
+void clickMouse(MMMouseButton button, int clickCount, MMKeyFlags flags)
 {
-	toggleMouse(true, button);
-	toggleMouse(false, button);
-}
-
-/**
- * Special function for sending double clicks, needed for Mac OS X.
- * @param button Button to click.
- */
-void doubleClick(MMMouseButton button)
-{
-
 #if defined(IS_MACOSX)
 
 	/* Double click for Mac. */
-	const CGPoint currentPos = CGPointFromMMPoint(getMousePos());
+	const CGPoint currentPos = CGPointFromMMSignedPoint(getMousePos());
 	const CGEventType mouseTypeDown = MMMouseToCGEventType(true, button);
 	const CGEventType mouseTypeUP = MMMouseToCGEventType(false, button);
 
 	CGEventRef event = CGEventCreateMouseEvent(NULL, mouseTypeDown, currentPos, kCGMouseButtonLeft);
 
 	/* Set event to double click. */
-	CGEventSetIntegerValueField(event, kCGMouseEventClickState, 2);
+	CGEventSetIntegerValueField(event, kCGMouseEventClickState, clickCount);
+	CGEventSetFlags(event, flags);
 
 	CGEventPost(kCGHIDEventTap, event);
 
@@ -221,14 +214,13 @@ void doubleClick(MMMouseButton button)
 	CGEventPost(kCGHIDEventTap, event);
 
 	CFRelease(event);
-
 #else
-
 	/* Double click for everything else. */
-	clickMouse(button);
-	microsleep(200);
-	clickMouse(button);
-
+	while (clickCount--) {
+		toggleMouse(true, button, 1, 0);
+		toggleMouse(false, button, 1, 0);
+		if (clickCount) microsleep(200);
+	}
 #endif
 }
 
@@ -340,9 +332,9 @@ static double crude_hypot(double x, double y)
 	return ((M_SQRT2 - 1.0) * small) + big;
 }
 
-bool smoothlyMoveMouse(MMPoint endPoint)
+bool smoothlyMoveMouse(MMSignedPoint endPoint)
 {
-	MMPoint pos = getMousePos();
+	MMSignedPoint pos = getMousePos();
 	MMSize screenSize = getMainDisplaySize();
 	double velo_x = 0.0, velo_y = 0.0;
 	double distance;
@@ -368,7 +360,8 @@ bool smoothlyMoveMouse(MMPoint endPoint)
 			return false;
 		}
 
-		moveMouse(pos);
+		//moveMouse(pos);
+		moveMouse(MMSignedPointMake((int32_t)pos.x, (int32_t)pos.y));
 
 		/* Wait 1 - 3 milliseconds. */
 		microsleep(DEADBEEF_UNIFORM(1.0, 3.0));
